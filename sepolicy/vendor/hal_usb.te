@@ -1,2 +1,19 @@
 allow vendor_hal_usb_qti vendor_sysfs_battery_supply:dir r_dir_perms;
 allow vendor_hal_usb_qti vendor_sysfs_battery_supply:file r_file_perms;
+
+# USB HAL reads the external-connector nodes (/sys/class/extcon/*,
+# .../88e0000.qcom,msm-eud/extcon) to detect cable/charger attach events.
+# Those share the vendor_sysfs_graphics type with the mdss backlight, panel LED
+# and hdcp nodes, so recursing through qcom,mdss_mdp also touches
+# .../ae00000.qcom,mdss_mdp/backlight. Without this rule the HAL emits 33 hard
+# (permissive=0) denials per boot. Same grants already exist for
+# hal_fingerprint_default, mi_thermald and hal_sensors_default.
+allow vendor_hal_usb_qti vendor_sysfs_graphics:dir r_dir_perms;
+allow vendor_hal_usb_qti vendor_sysfs_graphics:file r_file_perms;
+
+# USB Device Controller (gadget) state: /sys/class/udc. Required for the HAL to
+# report/enable gadget mode; observed as a hard (permissive=0) denial at runtime
+# on role switch. Folded in here because it was previously masked by the
+# vendor_sysfs_graphics noise on the same sysfs walk.
+allow vendor_hal_usb_qti sysfs_udc:dir r_dir_perms;
+allow vendor_hal_usb_qti sysfs_udc:file r_file_perms;

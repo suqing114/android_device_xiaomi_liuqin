@@ -1,3 +1,8 @@
 # All types previously here are provided by either sm8450-common or
 # device/qcom/sepolicy_vndr/sm8450 (vendor_sysfs_battery_supply,
 # vendor_sysfs_fingerprint).
+
+# Dolby Media Setting (DMS) HAL - DAP parameter store below /data/vendor/dolby.
+# Previously unlabelled, so it fell through to the generic vendor_data_file
+# type and hal_dolby_dms only worked because the domain was permissive.
+type hal_dolby_dms_data_file, data_file_type, file_type;

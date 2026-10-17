@@ -1,2 +1,6 @@
 # All fingerprint and panel.display properties previously here are
 # specified by device/xiaomi/sm8450-common/sepolicy/vendor/property_contexts.
+
+# Dolby Media Setting (DMS) HAL
+persist.vendor.dolby. u:object_r:vendor_dolby_prop:s0
+vendor.dolby.         u:object_r:vendor_dolby_prop:s0

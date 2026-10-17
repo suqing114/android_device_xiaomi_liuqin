@@ -19,6 +19,14 @@ TARGET_DEVICE_FSTAB := $(LOCAL_PATH)/init/fstab.qcom
 # must be set BEFORE inheriting it.
 TARGET_HAS_NO_TELEPHONY := true
 
+# WiFi-only tablet with no NFC controller and no secure element. Skip the
+# common NFC / SecureElement packages and feature permission XMLs. Without this
+# guard common.mk copies android.hardware.se.omapi.{uicc,ese}.xml even though no
+# SE HAL exists, so SecureElementService binds a missing HAL and ANRs every 20s
+# (executing service com.android.se/.SecureElementService, waited 20006ms).
+# Consumed by common.mk's NFC/SE guard; must be set BEFORE inheriting it.
+TARGET_HAS_NO_NFC := true
+
 # Mark liuqin as a tablet, matching the official LineageOS pipa (Pad 6) tree
 # and the hiper25 liuqin tree. Set before inheriting common.mk so any tablet
 # guards see it.
@@ -160,7 +168,7 @@ PRODUCT_PRODUCT_PROPERTIES += \
 # Tablet
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.software.freeform_window_management.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.freeform_window_management.xml \
-    frameworks/native/data/etc/tablet_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/tablet_core_hardware.xml
+    $(LOCAL_PATH)/configs/tablet_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/tablet_core_hardware.xml
 
 PRODUCT_PACKAGES += \
     RemoveTelephonyPackages

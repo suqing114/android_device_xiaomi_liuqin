@@ -2,19 +2,23 @@
 # Backs the Dolby Atmos DAP post-processing audio effect (libhwdap), which the
 # audio HAL process (hal_audio_default) loads, and the XiaomiDolby control app's
 # profile switching.
+#
+# Enforcing (no permissive exception): the rule set below was derived from the
+# complete set of denials this domain produced across several boots - 14 distinct
+# (perm, target, class) combinations, all of which are covered here.
 type hal_dolby_dms, domain;
 type hal_dolby_dms_exec, exec_type, vendor_file_type, file_type;
 type hal_dolby_dms_hwservice, hwservice_manager_type;
 
 init_daemon_domain(hal_dolby_dms)
 
-# Keep permissive for now: freshly re-enabled vendor HAL on Android 16. Collect
-# denials on-device and tighten later. The build is Enforcing with
-# SELINUX_IGNORE_NEVERALLOWS set, so a permissive domain here is acceptable.
-permissive hal_dolby_dms;
-
 hwbinder_use(hal_dolby_dms)
 add_hwservice(hal_dolby_dms, hal_dolby_dms_hwservice)
+
+# DAP parameter store: /data/vendor/dolby/dax_sqlite3.db (sqlite, needs ioctl).
+allow hal_dolby_dms hal_dolby_dms_data_file:dir create_dir_perms;
+allow hal_dolby_dms hal_dolby_dms_data_file:file create_file_perms;
+allow hal_dolby_dms hal_dolby_dms_data_file:file ioctl;
 
 # Clients: the dap effect (libhwdap) connects to the DMS HAL from inside the
 # audio HAL process (hal_audio_default) via IDms::getService() -> needs find +
@@ -29,3 +33,22 @@ binder_call(hal_audio_default, hal_dolby_dms)
 binder_call(audioserver, hal_dolby_dms)
 binder_call(priv_app, hal_dolby_dms)
 binder_call(system_app, hal_dolby_dms)
+
+# DMS calls back into the audio HAL to attach/detach the DAP effect.
+binder_call(hal_dolby_dms, hal_audio_default)
+
+# Property service access for persist.vendor.dolby.* / vendor.dolby.*.
+unix_socket_connect(hal_dolby_dms, property, init)
+set_prop(hal_dolby_dms, vendor_dolby_prop)
+get_prop(hal_dolby_dms, vendor_dolby_prop)
+
+# DMS also reads the generic audio and hwservicemanager property types
+# ({ getattr open read map } on vendor_audio_prop / hwservicemanager_prop).
+# These were the only residual denials after the rules above were added.
+get_prop(hal_dolby_dms, vendor_audio_prop)
+get_prop(hal_dolby_dms, hwservicemanager_prop)
+
+# DMS also writes one audio property at first-init:
+#   { set } property=persist.vendor.audio.scenario -> vendor_audio_prop
+# Observed as the last residual denial after the reads above were granted.
+set_prop(hal_dolby_dms, vendor_audio_prop)

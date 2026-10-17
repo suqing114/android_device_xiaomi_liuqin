@@ -72,6 +72,17 @@ DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/configs/vintf/manifest_xiaomi.xml
 DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE += \
     $(DEVICE_PATH)/configs/vintf/framework_compatibility_matrix_xiaomi.xml
 
+# LineageOS HALs (vendor.lineage.health / vendor.lineage.touch) 在设备 manifest 中声明,
+# 但框架兼容性矩阵里必须有对应条目, 否则 target-files 的 VINTF 检查会失败:
+#   ERROR: files are incompatible: The following instances are in the device manifest
+#          but not specified in framework compatibility matrix
+#            vendor.lineage.health.IChargingControl/default (@2)
+#            vendor.lineage.health.IFastCharge/default (@2)
+#            vendor.lineage.touch.IHighTouchPollingRate/default (@1)
+# hardware/lineage 自带该矩阵 (含以上全部条目), 这里引入即可。
+DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE += \
+    hardware/lineage/interfaces/compatibility_matrices/compatibility_matrix.lineage.xml
+
 # Filesystem types - Pad 6 Pro ships with erofs, override sm8450-common's ext4
 BOARD_ODMIMAGE_FILE_SYSTEM_TYPE := erofs
 BOARD_PRODUCTIMAGE_FILE_SYSTEM_TYPE := erofs
@@ -85,9 +96,25 @@ TARGET_ODM_PROP += $(DEVICE_PATH)/configs/properties/odm.prop
 TARGET_PRODUCT_PROP += $(DEVICE_PATH)/configs/properties/product.prop
 TARGET_VENDOR_PROP += $(DEVICE_PATH)/configs/properties/vendor.prop
 
-# Recovery (tablet portrait-default)
-TARGET_RECOVERY_DEFAULT_ROTATION := ROTATION_RIGHT
-TARGET_RECOVERY_OVERSCAN_PERCENT := 1
+# Recovery
+#
+# The panel's native DRM mode is 1800x2880 (PORTRAIT), which is also the size of
+# the dumb buffer minui allocates. ROTATION_NONE therefore maps the logical UI
+# 1:1 onto the panel.
+#
+# ROTATION_RIGHT was wrong: it makes minui lay the UI out as 2824x1764 landscape
+# and store it rotated 90 degrees inside the still-portrait buffer, which the
+# panel then cannot display correctly (only a thin strip of the UI is visible,
+# the rest of the screen is undriven). Dumping the live framebuffer out of
+# recovery confirmed the buffer contents are correct but rotated, so the fault
+# is the orientation contract, not the drawing code.
+TARGET_RECOVERY_DEFAULT_ROTATION := ROTATION_NONE
+TARGET_RECOVERY_OVERSCAN_PERCENT := 0
+
+# The very first modeset flush pushes two buffers that the UI has not drawn into
+# yet (graphics.cpp gr_init()); on this dual-DSI + DSC panel that triggers a
+# burst of SDE underruns (30 in 0.27s) and leaves the panel in a bad state.
+TARGET_RECOVERY_NO_INITIAL_MODSET_FLUSH := true
 
 # Screen
 TARGET_SCREEN_DENSITY := 340
@@ -110,3 +137,21 @@ BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
 # still trips a few neverallows (e.g. init exec'ing vendor_file); drop it
 # once those are properly domained.
 SELINUX_IGNORE_NEVERALLOWS := true
+
+# ---------------------------------------------------------------
+# MikuUI: 为预编译内核补齐 KERNEL_OBJ/usr 头文件目录
+#
+# 本设备设 TARGET_FORCE_PREBUILT_KERNEL := true, 于是 FULL_KERNEL_BUILD := false,
+# 构建系统不会生成 $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr 的规则。
+# 但 QTI 音频模块 (liblx-osal / pal / ar_osal 等) 声明了
+#   LOCAL_ADDITIONAL_DEPENDENCIES := $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr
+# 导致 ninja 报错:
+#   'out/target/product/liuqin/obj/KERNEL_OBJ/usr' ... missing and no known rule
+#
+# 这里在解析期就构造好该目录 (软链接拼接内核源码 UAPI + 设备树提取头),
+# 使 ninja 有实体可依赖。脚本幂等, 已存在则立即返回。
+# ---------------------------------------------------------------
+# 无条件执行: 本文件只属于 liuqin 设备树; 且 TARGET_DEVICE 在 BoardConfig
+# 解析阶段可能尚未赋值, 故不用它做条件。脚本内部用 TARGET_DEVICE/TARGET_PRODUCT
+# 环境变量定位输出目录, 未知时回退为 liuqin。
+$(shell device/xiaomi/liuqin/setup-kernel-headers.sh >/dev/null 2>&1 || true)
