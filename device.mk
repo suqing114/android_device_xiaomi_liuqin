@@ -56,6 +56,20 @@ $(call inherit-product-if-exists, vendor/xiaomi/liuqin/liuqin-vendor.mk)
 # the SDE connector topology blob. See android_device_xiaomi_pipa change 463649.
 $(call soong_config_set_bool,recovery,target_recovery_uses_qti_drm,true)
 
+# Recovery touch firmware: NT36532 is flashless, the driver downloads these
+# ~14s after probe (nvt_fwu_wq). In recovery the kernel only tries direct
+# loading (no ueventd fallback, firmware_class.path empty), so the files must
+# sit in the kernel's default search path /lib/firmware (verified on device:
+# "Direct firmware load ... failed with error -2" when placed elsewhere).
+PRODUCT_COPY_FILES +=     $(foreach f,fw_csot fw_tm mp_csot mp_tm,         vendor/xiaomi/liuqin/proprietary/vendor/firmware/novatek_nt36532_m81_$(f).bin:$(TARGET_COPY_OUT_RECOVERY)/root/lib/firmware/novatek_nt36532_m81_$(f).bin)
+
+# Recovery /data decryption: fbe_helper (device/xiaomi/liuqin/recovery_fbe) plus the
+# KeyMint HAL declaration, so recovery's servicemanager accepts the vendor KeyMint
+# service that fbe_helper starts from the real vendor partition.
+PRODUCT_PACKAGES += fbe_helper
+PRODUCT_COPY_FILES += \
+    vendor/xiaomi/sm8450-common/proprietary/vendor/etc/vintf/manifest/android.hardware.security.keymint-service-qti.xml:$(TARGET_COPY_OUT_RECOVERY)/root/system/etc/vintf/manifest/keymint-recovery.xml
+
 # Soong namespaces
 PRODUCT_SOONG_NAMESPACES += \
     $(LOCAL_PATH)

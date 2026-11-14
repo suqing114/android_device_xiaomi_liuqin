@@ -1,0 +1,52 @@
+// /data decryption helper for the liuqin recovery (see fbe_helper.cpp).
+//
+// The KeyMint / SharedSecret / SecureClock AIDL interfaces have no recovery
+// variants (enabling them breaks their cpp backends), so the generated NDK
+// stubs are compiled straight into this binary instead.
+cc_binary {
+    name: "fbe_helper",
+    recovery: true,
+    srcs: ["fbe_helper.cpp"],
+    generated_sources: [
+        "android.hardware.security.keymint-V1-ndk-source",
+        "android.hardware.security.secureclock-V1-ndk-source",
+        "android.hardware.security.sharedsecret-V1-ndk-source",
+    ],
+    generated_headers: [
+        "android.hardware.security.keymint-V1-ndk-source",
+        "android.hardware.security.secureclock-V1-ndk-source",
+        "android.hardware.security.sharedsecret-V1-ndk-source",
+    ],
+    static_libs: ["libfbe_sqlite"],
+    shared_libs: [
+        "android.hardware.gatekeeper@1.0",
+        "libhidlbase",
+        "libutils",
+        "libbase",
+        "libbinder_ndk",
+        "libcrypto",
+        "libfs_mgr",
+        "liblog",
+    ],
+    cflags: ["-Wall", "-Werror"],
+}
+
+// SQLite (public domain amalgamation, copied from external/sqlite) to read the
+// keystore2 database; external/sqlite has no recovery variant.
+cc_library_static {
+    name: "libfbe_sqlite",
+    recovery: true,
+    srcs: ["sqlite/sqlite3.c"],
+    export_include_dirs: ["sqlite"],
+    cflags: [
+        "-DSQLITE_THREADSAFE=0",
+        "-DSQLITE_OMIT_LOAD_EXTENSION",
+        "-DSQLITE_DEFAULT_MEMSTATUS=0",
+        "-Wno-unused-parameter",
+        "-Wno-unused-function",
+        "-Wno-unused-variable",
+        "-Wno-unused-but-set-variable",
+        "-Wno-implicit-fallthrough",
+        "-Wno-error",
+    ],
+}

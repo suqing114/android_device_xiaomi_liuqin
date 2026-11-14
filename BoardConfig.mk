@@ -67,6 +67,15 @@ BOARD_VENDOR_KERNEL_MODULES := $(wildcard $(LIUQIN_KERNEL)/vendor_dlkm/*.ko)
 BOARD_VENDOR_KERNEL_MODULES_LOAD := $(notdir $(strip $(shell cat $(LIUQIN_KERNEL)/vendor_dlkm/modules.load)))
 BOARD_VENDOR_KERNEL_MODULES_BLOCKLIST_FILE := $(LIUQIN_KERNEL)/vendor_dlkm/modules.blocklist
 
+# Recovery touch: the panel touch driver (Novatek NT36532, input
+# "NVTCapacitiveTouchScreen") and its xiaomi_touch dependency only ship in
+# vendor_dlkm, which recovery never mounts, so recovery had no touchscreen.
+# Stage them into the vendor ramdisk and load them in recovery mode only;
+# modules.load (normal first stage) is unchanged, normal boot still loads
+# them from vendor_dlkm. All other deps are already in modules.load.recovery.
+BOARD_VENDOR_RAMDISK_KERNEL_MODULES +=     $(LIUQIN_KERNEL)/vendor_dlkm/xiaomi_touch.ko     $(LIUQIN_KERNEL)/vendor_dlkm/nt36532_touch.ko
+BOARD_VENDOR_RAMDISK_RECOVERY_KERNEL_MODULES_LOAD += xiaomi_touch.ko nt36532_touch.ko
+
 # VINTF (liuqin-specific Xiaomi HAL declarations, on top of sm8450-common)
 DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/configs/vintf/manifest_xiaomi.xml
 DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE += \
