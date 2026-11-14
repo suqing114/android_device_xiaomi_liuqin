@@ -2,4 +2,6 @@
 PRODUCT_MAKEFILES := $(LOCAL_DIR)/miku_liuqin.mk
 COMMON_LUNCH_CHOICES := \
     miku_liuqin-bp4a-user \
-    miku_liuqin-bp4a-userdebug
+    miku_liuqin-bp4a-userdebug \
+    miku_liuqin-cp2a-user \
+    miku_liuqin-cp2a-userdebug

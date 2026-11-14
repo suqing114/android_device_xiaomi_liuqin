@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Miku UI maintainer link for liuqin.
+     Overrides packages/apps/Settings/res/values/miku_strings.xml so the maintainer
+     entry on the About page points at the maintainer's page.
+     Documented in the Miku UI wiki ("如何添加您的编译者信息").
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="miku_maintainer_uri" translatable="false">https://github.com/suqing114</string>
+</resources>

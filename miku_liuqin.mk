@@ -4,6 +4,9 @@
 TARGET_MIKU_BUILD_VARIANT := UNOFFICIAL
 MIKU_GAPPS := true
 
+# 构建人 / 维护者 (ro.miku.maintainer)。留空时 versioning.mk 会回落成 BuildBot。
+MIKU_MASTER := suqing114
+
 $(call inherit-product, device/xiaomi/liuqin/device.mk)
 $(call inherit-product, vendor/miku/build/product/miku_product_tab.mk)
 

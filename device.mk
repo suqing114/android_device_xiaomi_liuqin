@@ -117,6 +117,11 @@ PRODUCT_PACKAGES += \
     libstagefright_foundation-v33 \
     vendor.dolby.hardware.dms@2.0-service.xml
 
+# VINTF fragment for the Qualcomm TUI comm HAL (fragment module lives in tui_comm/Android.bp).
+# Without it the service cannot register and init restarts it forever.
+PRODUCT_PACKAGES += \
+    vendor.qti.hardware.tui_comm@1.0-service.xml
+
 # Dolby control app: XiaomiDolby (com.xiaomi.dolby) - the open-source Atmos
 # control app (Settings -> Sound entry + QS tile). Its DolbyAtmos class is an
 # AudioEffect bound to the DAP effect (uuid 9d4921da-...), so toggling it on
@@ -192,3 +197,42 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/window_extensions.mk)
 # WiFi: sm8450-common already provides the qca6490 firmware symlinks
 # and a generic WCNSS_qcom_cfg_qca6490.ini. liuqin doesn't need its own
 # overrides at this stage.
+
+# ---------------------------------------------------------------
+# VINTF: 关闭内核版本要求检查 (Android 17 矩阵已不再支持 5.10)
+#
+# 本设备用预编译 waipio 内核 5.10.252-android12-...，而 Android 17 的框架兼容性
+# 矩阵只保留到 FCM 7/8/202404/202504/202604，没有 5.10 对应的内核条目，于是
+# target-files 的 VINTF 检查会失败:
+#   ERROR: files are incompatible: Runtime info and framework compatibility matrix
+#          are incompatible: No kernel entry found for kernel version 5.10 at kernel
+#          FCM version 6.
+#          Cannot find framework matrix at FCM version 6.
+#
+# PRODUCT_SHIPPING_API_LEVEL >= 29 会让 PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS
+# 默认为 true；置 false 后 build/make/core/Makefile 不再给 check_vintf 传 --kernel，
+# 内核要求检查随之跳过（AOSP 的 goldfish 也是这样关闭的）。HAL manifest 与矩阵的
+# 一致性检查仍然保留，不受影响。
+PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS := false
+
+# ---------------------------------------------------------------
+# SELinux Treble labeling: known-violation tracking list
+#
+# Android 17 enforces the Treble labeling tests (PLATFORM_SEPOLICY_VERSION >= 202604).
+# The pinned Android 16 QTI vendor policy labels the platform app
+# com.qualcomm.qti.poweroffalarm with the vendor domain vendor_poweroffalarm_app, which the
+# new rule rejects. The domain is kept (it needs hal_alarm_qti / vendor_persist_alarm_file),
+# and the violation is recorded in the tracking list instead of relabeling the app.
+# See system/sepolicy/tests/treble_labeling_tests.md.
+PRODUCT_SELINUX_TREBLE_LABELING_TRACKING_LIST_FILE := \
+    device/xiaomi/liuqin/sepolicy/tracking_list.yaml
+
+# ---------------------------------------------------------------
+# Build-time resource overlay: Miku UI maintainer information
+#
+# Miku UI's wiki ("如何添加您的编译者信息") documents two steps:
+#   1. MIKU_MASTER := <name>            (set in miku_liuqin.mk)  -> ro.miku.maintainer
+#   2. DEVICE_PACKAGE_OVERLAYS + a Settings miku_strings.xml override so the
+#      maintainer entry links to the maintainer's page (miku_maintainer_uri).
+DEVICE_PACKAGE_OVERLAYS += \
+    device/xiaomi/liuqin/overlay-miku

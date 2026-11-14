@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Miku UI maintainer link for liuqin (Japanese locale).
+     packages/apps/Settings/res/values-ja/miku_strings.xml ships the placeholder
+     http://127.0.0.1 for ja, which would win over the default-locale override on a
+     Japanese system. Kept in sync with the default-locale value.
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="miku_maintainer_uri" translatable="false">https://github.com/suqing114</string>
+</resources>

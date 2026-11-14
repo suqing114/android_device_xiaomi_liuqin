@@ -1,0 +1,28 @@
+# SELinux Treble labeling tracking list (allowlist) for liuqin.
+#
+# Why this exists
+# ---------------
+# Android 17 runs the Treble labeling tests for PLATFORM_SEPOLICY_VERSION >= 202604
+# (build/make/core/Makefile: "droidcore: check-selinux-treble-labeling"). One pinned
+# Android 16 vendor policy file labels a platform app with a vendor domain:
+#
+#   device/qcom/sepolicy_vndr/sm8450/generic/vendor/common/seapp_contexts
+#     user=_app seinfo=platform name=com.qualcomm.qti.poweroffalarm \
+#       domain=vendor_poweroffalarm_app type=app_data_file levelFrom=all
+#
+# PowerOffAlarm.apk is a Qualcomm platform app installed on /system_ext, so the new rule
+# "no platform apps may be labeled inside vendor seapp_contexts" fires.
+#
+# The vendor domain is kept on purpose: it grants the app hal_alarm_qti and
+# vendor_persist_alarm_file access, which a coredomain (platform_app) does not have.
+# The violation is therefore recorded here as a known, reviewed exception instead of
+# being fixed by relabeling the app.
+#
+# Reference: system/sepolicy/tests/treble_labeling_tests.md (section "The Tracking List File")
+platform_apps_in_vendor_seapp_contexts:
+  - name: com.qualcomm.qti.poweroffalarm
+  - apk: PowerOffAlarm.apk
+coredomain_in_vendor: []
+platform_file_in_vendor_file_contexts: []
+non_coredomain_for_platform_apps: []
+coredomain_for_vendor_apps: []

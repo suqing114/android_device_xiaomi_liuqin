@@ -23,7 +23,7 @@
 #  幂等: 关键头齐备则直接返回。
 # ============================================================
 set -uo pipefail
-SRC=/opt/miku/src
+SRC="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd -P)"
 OUT="${OUT_DIR:-out}"
 DEV="${TARGET_DEVICE:-liuqin}"
 KOBJ="$SRC/$OUT/target/product/$DEV/obj/KERNEL_OBJ/usr"

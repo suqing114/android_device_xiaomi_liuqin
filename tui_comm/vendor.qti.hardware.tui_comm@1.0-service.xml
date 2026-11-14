@@ -1,0 +1,18 @@
+<manifest version="1.0" type="device">
+    <!--
+        Qualcomm TUI (trusted UI) communication HAL.
+        Shipped as a per-service fragment, matching every other registering HIDL HAL
+        on liuqin (see device/xiaomi/liuqin/dolby/Android.bp for the same pattern and
+        the explanation why an inline entry in configs/vintf/manifest_xiaomi.xml is
+        not honored by hwservicemanager here).
+    -->
+    <hal format="hidl">
+        <name>vendor.qti.hardware.tui_comm</name>
+        <transport>hwbinder</transport>
+        <version>1.0</version>
+        <interface>
+            <name>ITuiComm</name>
+            <instance>default</instance>
+        </interface>
+    </hal>
+</manifest>

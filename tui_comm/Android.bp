@@ -1,0 +1,17 @@
+//
+// VINTF manifest fragment for the Qualcomm TUI comm HIDL HAL.
+//
+// The HyperOS firmware ships a fragment for every registering HAL, but
+// vendor.qti.hardware.tui_comm@1.0-service-qti was never extracted into
+// proprietary-files.txt. Without a declaration the service crash-loops with
+// "must be in VINTF manifest in order to register/get" (init restarts it every
+// 5 seconds). Same class of fix as the Dolby DMS fragment in ../dolby/Android.bp;
+// must land on /vendor (soc_specific) so it merges into the device HAL manifest.
+//
+prebuilt_etc_xml {
+    name: "vendor.qti.hardware.tui_comm@1.0-service.xml",
+    src: "vendor.qti.hardware.tui_comm@1.0-service.xml",
+    filename_from_src: true,
+    sub_dir: "vintf/manifest",
+    soc_specific: true,
+}
