@@ -7,12 +7,16 @@ the themed recovery UI in `bootable/recovery/recovery_ui/screen_ui_theme.cpp`
 
 | Files | Source | License |
 |---|---|---|
-| `font.png`, `font_menu.png`, `font_small.png`, `font_title.png` | Cascadia Mono, rendered to minui bitmap fonts (96 glyphs x regular/bold rows) | SIL Open Font License 1.1, https://github.com/microsoft/cascadia-code |
+| `font.png`, `font_menu.png`, `font_small.png`, `font_title.png` | Cascadia Mono, rendered to minui bitmap fonts (96 glyphs x regular/bold rows) | SIL Open Font License 1.1, full text in [`OFL-CascadiaMono.txt`](OFL-CascadiaMono.txt); upstream https://github.com/microsoft/cascadia-code |
 | `ui_<icon>_<size>.png` | AOSP Material vector drawables (frameworks/base core and SystemUI, SettingsLib, packages/apps/Settings), rasterized to alpha masks | Apache License 2.0 |
 | `ui_banner.png` | `hero_visual_bg_tile.png`, `hero_visual_miku.png`, `hero_title.png` from `packages/apps/MikuSettings`, composited on the UI background | MikuUI project artwork |
 | `ui_chibi.png` | `miku_device_info_character.png` from `packages/apps/MikuSettings` | MikuUI project artwork |
 | `ui_head.png` | `icon_miku.png` from `packages/apps/Settings` (MikuUI) | MikuUI project artwork |
 | `ui_logo.png` | the stock recovery `logo_image.png`, rescaled (fallback when the banner is missing) | as bootable/recovery |
+
+The bitmap fonts are renderings of Cascadia Mono and are distributed under the
+same license. "Cascadia Code" is a Reserved Font Name; these files do not use
+that name.
 
 The fonts, icons and composites were generated with a small System.Drawing
 tool (C# via PowerShell, no third-party code): vector paths are parsed and
