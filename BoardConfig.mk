@@ -73,8 +73,11 @@ BOARD_VENDOR_KERNEL_MODULES_BLOCKLIST_FILE := $(LIUQIN_KERNEL)/vendor_dlkm/modul
 # Stage them into the vendor ramdisk and load them in recovery mode only;
 # modules.load (normal first stage) is unchanged, normal boot still loads
 # them from vendor_dlkm. All other deps are already in modules.load.recovery.
-BOARD_VENDOR_RAMDISK_KERNEL_MODULES +=     $(LIUQIN_KERNEL)/vendor_dlkm/xiaomi_touch.ko     $(LIUQIN_KERNEL)/vendor_dlkm/nt36532_touch.ko
+BOARD_VENDOR_RAMDISK_KERNEL_MODULES +=     $(LIUQIN_KERNEL)/vendor_dlkm/xiaomi_touch.ko     $(DEVICE_PATH)/recovery/modules/nt36532_touch.ko
 BOARD_VENDOR_RAMDISK_RECOVERY_KERNEL_MODULES_LOAD += xiaomi_touch.ko nt36532_touch.ko
+# The recovery copy of nt36532_touch.ko queues its firmware download after 3 s
+# instead of 14 s, so touch works right after recovery shows up; see
+# recovery/modules/README.md. Normal boot keeps loading the stock vendor_dlkm one.
 
 # VINTF (liuqin-specific Xiaomi HAL declarations, on top of sm8450-common)
 DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/configs/vintf/manifest_xiaomi.xml
